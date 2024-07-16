@@ -16,8 +16,8 @@ class DistanceNode(Node):
         #print ('GOOD GOOD GOOD GOOD GOOD GOOD GOOD GOOD GOOD GOOD GOOD GOOD')
         image_sub = message_filters.Subscriber(self, CompressedImage, 'image')
         segmentation_sub = message_filters.Subscriber(self, Image, 'segmentation')
-        #depth_sub = message_filters.Subscriber(self, CompressedImage, 'depth')
-        depth_sub = message_filters.Subscriber(self, CompressedImage,'/realsense_back/depth/image_rect_raw/compressedDepth')
+        depth_sub = message_filters.Subscriber(self, CompressedImage, 'depth')
+        # depth_sub = message_filters.Subscriber(self, CompressedImage,'/realsense_back/depth/image_rect_raw/compressedDepth')
         self.ts = message_filters.TimeSynchronizer([image_sub, segmentation_sub,depth_sub], 10)
         self.ts.registerCallback(self.road_edge_detection)
 
@@ -33,7 +33,7 @@ class DistanceNode(Node):
         road_detection = RoadEdgeDetection(image, mask, depth)
 
         distances = road_detection.find_distances()
-        #print ("DISTANCES", distances)
+        # print ("DISTANCES", distances)
         distances_msg = Float64MultiArray()
         distances_msg.data = distances
         self.distances.publish(distances_msg)

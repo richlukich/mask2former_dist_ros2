@@ -28,8 +28,8 @@ docker run -it -d --rm  --gpus all \
         --env="DISPLAY=$DISPLAY" \
         --env="QT_X11_NO_MITSHM=1" \
         --privileged \
-        --name mask2former_ros2 \
+        --name mask2former_dist_ros2 \
         -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-        -v /home/matykina_ov/mask2former_ros2/colcon_ws:/home/docker_mask2former_ros2/colcon_ws:rw \
+        -v /home/matykina_ov/mask2former_dist_ros2/colcon_ws:/home/docker_mask2former_ros2/colcon_ws:rw \
         ${ARCH}foxy/semseg_m2f:latest
 xhost -

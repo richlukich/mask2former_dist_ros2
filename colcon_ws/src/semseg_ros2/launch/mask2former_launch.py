@@ -21,11 +21,11 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             'camera_ns',
             # default_value='/kitti/camera_color_left/'
-            default_value='/realsense_back/color/image_raw/'
+            default_value='/realsense_back/'
         ),
         launch.actions.DeclareLaunchArgument(
             'image_topic',
-            default_value='compressed'
+            default_value='color/image_raw/compressed'
             # default_value='image_rect_color'
         ),
         launch.actions.DeclareLaunchArgument(
@@ -38,7 +38,11 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             'depth_topic',
-            default_value='/realsense_back/depth/image_rect_raw/compressedDepth'
+            default_value='depth/image_rect_raw/compressedDepth'
+        ),
+        launch.actions.DeclareLaunchArgument(
+            'distances_topic',
+            default_value='distances'
         ),
         # Nodes
         launch_ros.actions.Node(
@@ -66,7 +70,9 @@ def generate_launch_description():
             remappings=[
                 ('image', launch.substitutions.LaunchConfiguration('image_topic')),
                 ('segmentation', launch.substitutions.LaunchConfiguration('segmentation_topic')),
-                ('depth', launch.substitutions.LaunchConfiguration('depth_topic'))
+                ('depth', launch.substitutions.LaunchConfiguration('depth_topic')),
+                ('distances', launch.substitutions.LaunchConfiguration('distances_topic')),
+
             ],
             output="screen"
         )  
