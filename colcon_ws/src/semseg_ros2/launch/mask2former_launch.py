@@ -36,7 +36,10 @@ def generate_launch_description():
             'segmentation_color_topic',
             default_value='segmentation_color'
         ),
-
+        launch.actions.DeclareLaunchArgument(
+            'depth_topic',
+            default_value='/realsense_back/depth/image_rect_raw/compressedDepth'
+        ),
         # Nodes
         launch_ros.actions.Node(
             package='semseg_ros2',
@@ -55,7 +58,20 @@ def generate_launch_description():
             ],
             output="screen"
         ),
-
+        launch_ros.actions.Node(
+            package='semseg_ros2',
+            namespace=launch.substitutions.LaunchConfiguration('camera_ns'),
+            executable='distance_node',
+            name='distance_node',
+            remappings=[
+                ('image', launch.substitutions.LaunchConfiguration('image_topic')),
+                ('segmentation', launch.substitutions.LaunchConfiguration('segmentation_topic')),
+                ('depth', launch.substitutions.LaunchConfiguration('depth_topic'))
+            ],
+            output="screen"
+        )  
+    ])
+'''
         launch_ros.actions.Node(
             package='semseg_ros2',
             namespace=launch.substitutions.LaunchConfiguration('camera_ns'),
@@ -73,4 +89,4 @@ def generate_launch_description():
             # ],
             output="screen"
         )
-    ])
+        '''

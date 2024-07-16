@@ -24,8 +24,9 @@ setup(
     entry_points={
         'console_scripts': [
             'mask2former_node = semseg_ros2.mask2former_node:main',
-            'visualizer_node = semseg_ros2.visualizer_node:main',
+            #'visualizer_node = semseg_ros2.visualizer_node:main',
             # 'inference_meter_node = semseg_ros2.inference_meter_node:main',
+            'distance_node = semseg_ros2.distance_node:main'
         ],
     },
 )
