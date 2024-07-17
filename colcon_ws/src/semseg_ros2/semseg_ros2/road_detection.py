@@ -55,12 +55,13 @@ class RoadEdgeDetection():
         return cnt[idx_right]
     
     def find_distances(self):
-        k1 = 479 / 720
-        k2 = 847 / 1280
+        #k1 = 479 / 720
+        #k2 = 847 / 1280
+    
         ret, mask = cv2.threshold(self.mask , 0, 255, cv2.THRESH_BINARY)
         contours, hier = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
         if len(contours) == 0:
-            return []
+            return [-1.0, -1.0], self.image
         if len(contours) > 1:
             max_contour = self.get_max_contour(contours)
         else:
@@ -73,27 +74,75 @@ class RoadEdgeDetection():
 
         left_side = self.get_left_side(max_contour, mean_point)
         right_side = self.get_right_side(max_contour, mean_point)
-    
+        '''
         u_left = list(map(int, left_side[:,0] * k1))
         v_left = list(map(int,left_side[:,1] * k2))
         u_right = list(map(int,right_side[:,0] * k1))
         v_right = list(map(int,right_side[:,1] * k2))
-
+        '''
+        u_left = left_side[:,0]
+        v_left = left_side[:,1]
+        u_right = right_side[:,0]
+        v_right = right_side[:,1]
         Z_left = self.depth[v_left,u_left] / 1000
         Z_right = self.depth[v_right,u_right] / 1000
 
         X_left,Y_left,_,dist_left = self.get_xyz(np.array(u_left),np.array(v_left),Z_left)
-        #print (Z_left, Z_right)
-        #break
-    
+        
+        #print ("DIST_LEFT",dist_left)
 
         X_right,Y_right,_,dist_right = self.get_xyz(np.array(u_right),np.array(v_right),Z_right)
+        
+        if len(dist_left) == 0:
+            dist_left = -1.0
+
+        else:
+            idx_left, dist_left = np.argmin(dist_left), np.min(dist_left)
+            u_left, v_left = left_side[idx_left][0],left_side[idx_left][1]
+                
+        if len(dist_right) == 0:
+            dist_right = -1.0
+
+        else:
+            idx_right, dist_right = np.argmin(dist_right), np.min(dist_right)
+            u_right, v_right = right_side[idx_right][0],right_side[idx_right][1]
+                
+
+        #print ("DIST_right",dist_right)
+
+        #u_left, v_left = left_side[idx_left][0],left_side[idx_left][1]
+        #u_right, v_right = right_side[idx_right][0],right_side[idx_right][1]
+        image = self.image.copy()
+
+        max_contour = max_contour.reshape(-1, 1, 2)
+
+        image = cv2.drawContours(image, max_contour, -1, (0,255,255), 3)
+        image = cv2.circle(image, (mean_point,mask.shape[0] - 1),radius=20, color=(0, 0, 255), thickness=-1)
 
         
-        idx_left, dist_left = np.argmin(dist_left), np.min(dist_left)
-        idx_right, dist_right = np.argmin(dist_right), np.min(dist_right)
+        image = cv2.putText(image, f'Left distance:{round(dist_left,3)} m', (50,50), cv2.FONT_HERSHEY_SIMPLEX,  
+                    1, (0, 0, 255), 2, cv2.LINE_AA)
+        if dist_left != -1.0:
+            image = cv2.circle(image, (u_left, v_left), radius=10, color=(255, 0, 255), thickness=-1)
+            image = cv2.putText(image, f'X:{round(X_left[idx_left],3)} m', (50,100), cv2.FONT_HERSHEY_SIMPLEX,  
+                        1, (0, 0, 255), 2, cv2.LINE_AA)
+            image = cv2.putText(image, f'Y:{round(Y_left[idx_left],3)} m', (50,150), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+            image = cv2.putText(image, f'Z:{round(Z_left[idx_left],3)} m', (50,200), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+        
 
-        u_left, v_left = left_side[idx_left][0],left_side[idx_left][1]
-        u_right, v_right = right_side[idx_right][0],right_side[idx_right][1]
-       
-        return [dist_left, dist_right]
+
+        image = cv2.putText(image, f'Right distance:{round(dist_right,3)} m', (900,50), cv2.FONT_HERSHEY_SIMPLEX,  
+                        1, (0, 0, 255), 2, cv2.LINE_AA)
+        if dist_right != -1.0:
+            image = cv2.circle(image, (u_right, v_right), radius=10, color=(255, 0, 255), thickness=-1)
+            image = cv2.putText(image, f'X:{round(X_right[idx_right],3)} m', (900,100), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+            image = cv2.putText(image, f'Y:{round(Y_right[idx_right],3)} m', (900,150), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+            image = cv2.putText(image, f'Z:{round(Z_right[idx_right],3)} m', (900,200), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+        
+
+        return [dist_left, dist_right], image

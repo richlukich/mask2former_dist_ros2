@@ -17,7 +17,7 @@ class VisualizerNode(Node):
     def __init__(self):
         super().__init__('visualizer_node')
 
-        print('INIT')
+        
 
         image_sub = message_filters.Subscriber(self, CompressedImage, 'image')
         segmentation_sub = message_filters.Subscriber(self, Image, 'segmentation')

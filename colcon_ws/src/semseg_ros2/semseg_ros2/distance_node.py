@@ -22,21 +22,33 @@ class DistanceNode(Node):
         self.ts.registerCallback(self.road_edge_detection)
 
         self.distances = self.create_publisher(Float64MultiArray, 'distances', 10)
+        self.road_edge_vis = self.create_publisher(Image, 'road_edge_vis', 10) 
 
         self.br = CvBridge()
     def road_edge_detection(self, image_msg: CompressedImage, segm_msg: Image, depth_msg: CompressedImage):
         image = self.br.compressed_imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
+        height, width = image.shape[:2]
         mask = self.br.imgmsg_to_cv2(segm_msg, desired_encoding='mono8')
         mask = np.where(mask==3,mask,0)
         depth = image_tools.it.convert_compressedDepth_to_cv2(depth_msg)
-        depth[depth == 0] = 15000
-        road_detection = RoadEdgeDetection(image, mask, depth)
+        cropped_depth_map = depth[66:-66, 115:-115]
+        depth_map_resized = cv2.resize(cropped_depth_map, (width, height), interpolation=cv2.INTER_NEAREST)
+        depth_map_resized[depth_map_resized == 0] = 15000
+        if np.sum(mask) > 300:
+            road_detection = RoadEdgeDetection(image, mask, depth_map_resized)
 
-        distances = road_detection.find_distances()
-        # print ("DISTANCES", distances)
+            distances, road_edge_vis = road_detection.find_distances()
+            cv2.imwrite('test.png', road_edge_vis)
+        else:
+            distances = [-1.0,-1.0]
+            road_edge_vis = image
         distances_msg = Float64MultiArray()
         distances_msg.data = distances
         self.distances.publish(distances_msg)
+
+        road_edge_vis_msg = self.br.cv2_to_imgmsg(road_edge_vis, 'bgr8')
+        road_edge_vis_msg.header = segm_msg.header
+        self.road_edge_vis.publish(road_edge_vis_msg)
 def main(args=None):
     rclpy.init(args=args)
 
